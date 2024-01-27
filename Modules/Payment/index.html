@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Razorpay Payment Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        #payment-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+<div id="payment-container">
+    <h2>Razorpay Payment Demo</h2>
+    <button onclick="initiatePayment()">Make Payment</button>
+    <p id="payment-status"></p>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+    function initiatePayment() {
+        fetch('http://localhost:3000/create-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(order => {
+            var options = {
+                key: 'rzp_test_xBKUqKu4w4MU5e',
+                amount: order.amount,
+                currency: order.currency,
+                name: 'Your Company Name',
+                description: 'Product/Service Description',
+                order_id: order.id,
+                handler: function(response) {
+                    fetch('http://localhost:3000/webhook', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            paymentId: response.razorpay_payment_id,
+                            orderId: order.id,
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('payment-status').innerText = data.status;
+                    });
+                },
+                prefill: {
+                    name: 'John Doe',
+                    email: 'john@example.com',
+                    contact: '1234567890',
+                },
+                notes: {
+                    address: 'Razorpay Corporate Office',
+                },
+                theme: {
+                    color: '#F37254',
+                },
+            };
+            
+            var rzp1 = new Razorpay(options);
+            rzp1.on('payment.failed', function (response){
+                console.error(response.error.description);
+                document.getElementById('payment-status').innerText = 'Payment failed';
+            });
+
+            rzp1.open();
+        })
+        .catch(error => {
+            console.error('Error fetching order:', error);
+        });
+    }
+</script>
+
+</body>
+</html>

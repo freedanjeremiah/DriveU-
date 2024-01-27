@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DriveU App</title>
+</head>
+<body>
+  <h1>DriveU App</h1>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    
+    const driverId = '1'; //add an Id here, need to increment later
+
+    
+    socket.emit('register', driverId);
+
+    
+    const sendNotificationButton = document.createElement('button');
+    sendNotificationButton.innerText = 'Send Notification';
+    sendNotificationButton.addEventListener('click', () => {
+      const message = 'New ride request!';
+      socket.emit('sendNotification', { driverId, message });
+    });
+
+    document.body.appendChild(sendNotificationButton);
+
+    
+    socket.on('notification', (message) => {
+      console.log(`Received Notification: ${message}`);
+      
+    });
+  </script>
+</body>
+</html>
