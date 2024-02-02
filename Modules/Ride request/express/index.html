@@ -1,0 +1,93 @@
+<!-- test html file -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Sharing App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        button {
+            margin-right: 10px;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <form id="requestForm">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id" required>
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" name="latitude" required>
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" name="longitude" required>
+        <button type="button" onclick="requestRide()">Request Ride</button>
+    </form>
+
+    <button type="button" onclick="acceptRide()">Accept Ride</button>
+    <button type="button" onclick="cancelRide()">Cancel Ride</button>
+    <button type="button" onclick="getAcceptedRideDetails()">Get Accepted Ride Details</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function requestRide() {
+            const user_id = document.getElementById('user_id').value;
+            const latitude = document.getElementById('latitude').value;
+            const longitude = document.getElementById('longitude').value;
+
+            const response = await fetch('http://localhost:3000/request_ride', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ user_id, latitude, longitude }),
+            });
+
+            const result = await response.json();
+            document.getElementById('result').innerText = result.message;
+        }
+
+        async function acceptRide() {
+            const user_id = prompt('Enter your user ID:');
+            if (user_id) {
+                const response = await fetch(`http://localhost:3000/accept_ride/${user_id}`);
+                const result = await response.json();
+                document.getElementById('result').innerText = result.message;
+            }
+        }
+
+        async function cancelRide() {
+            const user_id = prompt('Enter your user ID:');
+            if (user_id) {
+                const response = await fetch(`http://localhost:3000/cancel_ride/${user_id}`, {
+                    method: 'DELETE',
+                });
+                const result = await response.json();
+                document.getElementById('result').innerText = result.message;
+            }
+        }
+
+        async function getAcceptedRideDetails() {
+            const user_id = prompt('Enter your user ID:');
+            if (user_id) {
+                const response = await fetch(`http://localhost:3000/get_accepted_ride/${user_id}`);
+                const result = await response.json();
+                document.getElementById('result').innerText = result.message;
+            }
+        }
+    </script>
+</body>
+</html>
