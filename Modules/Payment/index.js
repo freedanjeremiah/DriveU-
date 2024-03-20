@@ -21,10 +21,10 @@ app.get('/', (req, res) => {
 
 app.post('/create-payment', async (req, res) => {
   const options = {
-    amount: 50000, // amount in paise (e.g., 50000 paise = ₹500)
+    amount: 500, // amount in paise (e.g., 50000 paise = ₹500)
     currency: 'INR',
-    receipt: 'order_receipt_123',
-  };
+    receipt: '',
+  };  
 
   try {
     const response = await razorpay.orders.create(options);

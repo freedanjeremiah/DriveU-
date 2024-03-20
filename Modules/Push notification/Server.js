@@ -1,54 +1,34 @@
-const express = require('express');
-const http = require('http');
-const socketIO = require('socket.io');
+// Import Firebase Admin SDK
+const admin = require('firebase-admin');
 
-const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
-
-const PORT = process.env.PORT || 3000;
-
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+// Initialize Firebase Admin SDK
+const serviceAccount = require('./path/to/serviceAccountKey.json'); // Path to your service account key JSON file
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
 });
 
+// Function to send a push notification
+async function sendPushNotification(token, title, body) {
+  try {
+    const message = {
+      notification: {
+        title: title,
+        body: body
+      },
+      token: token
+    };
 
-const connectedDrivers = {}; //storage?
+    // Send the message
+    const response = await admin.messaging().send(message);
+    console.log('Successfully sent message:', response);
+  } catch (error) {
+    console.error('Error sending message:', error);
+  }
+}
 
-io.on('connection', (socket) => {
-  console.log('A driver connected:', socket.id);
+// Example usage
+const token = 'device_token_here'; // Device token of the recipient
+const title = 'Hello';
+const body = 'This is a push notification from Firebase!';
 
- 
-  socket.on('register', (driverId) => {
-    connectedDrivers[driverId] = socket.id;
-    console.log(`Driver ${driverId} registered`);
-  });
-
-  
-  socket.on('sendNotification', (data) => {
-    const { driverId, message } = data;
-    const recipientSocketId = connectedDrivers[driverId];
-
-    if (recipientSocketId) {
-      io.to(recipientSocketId).emit('notification', message);
-      console.log(`Notification sent to Driver ${driverId}: ${message}`);
-    } else {
-      console.log(`Driver ${driverId} not found or not connected`);
-    }
-  });
-
-  // Handle disconnect
-  socket.on('disconnect', () => {
-    // Remove the driver from the connectedDrivers object on disconnect
-    Object.keys(connectedDrivers).forEach((driverId) => {
-      if (connectedDrivers[driverId] === socket.id) {
-        delete connectedDrivers[driverId];
-        console.log(`Driver ${driverId} disconnected`);
-      }
-    });
-  });
-});
-
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+sendPushNotification(token, title, body);
